@@ -1,0 +1,12 @@
+{
+  "place": "none",
+  "title": "Fleet",
+  "palette": [
+    { "title": "Star Wars: Light Side", "command": "star-wars-systems.light", "words": "light side appearance theme" },
+    { "title": "Star Wars: Dark Side", "command": "star-wars-systems.dark", "words": "dark side appearance theme" }
+  ],
+  "cloned_from": {
+    "name": "spaces",
+    "version": "0.1.16"
+  }
+}

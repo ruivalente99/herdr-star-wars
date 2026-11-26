@@ -1,54 +1,36 @@
 name: Bug report
-description: Something in the Middle-earth layout doesn't work or looks wrong.
+description: Report a problem with the Star Wars Herdr layout or mods.
+title: "[Bug]: "
 labels: [bug]
 body:
-  - type: textarea
-    id: what
+  - type: markdown
     attributes:
-      label: What happened
-      description: What you saw, and what you expected instead.
-    validations:
-      required: true
-  - type: textarea
-    id: steps
+      value: Before reporting, check that the issue reproduces with the latest project files.
+  - type: input
+    id: herdr-version
     attributes:
-      label: Steps to reproduce
-      placeholder: |
-        1. Install with ./install.sh
-        2. Start an agent
-        3. ...
+      label: Herdr version
+      placeholder: e.g. 0.x
     validations:
       required: true
   - type: input
-    id: herdr
+    id: platform
     attributes:
-      label: Herdr version
-      description: The output of `herdr-app --version`.
-      placeholder: herdr-app 0.1.16
-    validations:
-      required: true
-  - type: dropdown
-    id: system
-    attributes:
-      label: System
-      options: [macOS, Linux, Windows]
-    validations:
-      required: true
-  - type: dropdown
-    id: install
-    attributes:
-      label: How you installed it
-      options: [install.sh, With an agent, By hand]
+      label: Operating system
+      placeholder: macOS, Linux, or Windows (include version if known)
     validations:
       required: true
   - type: textarea
-    id: errors
+    id: description
     attributes:
-      label: Errors
-      description: The "errors" part of `herdr-app status`, if there are any.
-      render: json
+      label: What happened?
+      description: Include the steps to reproduce and what you expected instead.
+    validations:
+      required: true
   - type: textarea
-    id: screenshot
+    id: logs
     attributes:
-      label: Screenshot
-      description: Drag an image here.
+      label: Logs or screenshots
+      description: Add relevant output from `herdr-app check` or a screenshot.
+    validations:
+      required: false

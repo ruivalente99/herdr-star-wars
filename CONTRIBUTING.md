@@ -1,34 +1,27 @@
 # Contributing
 
-Thanks for helping the Fellowship. Bug reports, fixes, new art and Linux or Windows testing are all welcome.
+Bug reports, fixes, accessibility improvements, and testing on other platforms are welcome.
 
-## Reporting a bug
+## Before opening a pull request
 
-Open an issue with the bug template. Include your Herdr version (`herdr-app --version`), your system and a screenshot. Linux and Windows haven't been tested yet, so reports from them help the most.
+1. Run the regression suite: `node --test tools/*.test.mjs`.
+2. Run `herdr-app check mods/<mod-name>` for every mod you changed.
+3. If you changed the layout, colors, artwork, or visible behavior, update `RECIPE.md` and the relevant README section.
+4. For visual changes, update the illustrations with `tools/build-readme-art.py` and note your Herdr version and operating system. Never commit screenshots: repo images are illustrations only, so no real workspace, terminal, branch or project name ends up in the history.
 
-## Making a change
+## Project map
 
-1. Fork the repo and create a branch.
-2. Make your change. Where things live:
-   - `layouts/middle-earth.json`: the window layout.
-   - `themes/`: the Shire (light) and Mordor (dark) colors.
-   - `mods/`: the code. `fellowship` is the agents list, `fellowship-toast` the notifications, `fellowship-status` the status bar and `realms` the spaces list.
-   - `tools/sprites.py`: every sprite and emblem, as grids (24x24 agents, 16x16 emblems).
-3. To change art, edit the grids in `tools/sprites.py`, never the SVG or PNG files. Then regenerate:
+- `layouts/star-wars.json`: workspace composition.
+- `themes/`: Light Side and Dark Side palettes.
+- `mods/`: seven custom Herdr modules.
+- `backgrounds/ships/`: generated cockpit backgrounds.
+- `tools/build-sprites.py`, `tools/build-ship-backgrounds.py`: artwork sources and generators.
+- `share/star-wars/`: installable package export; keep it in sync with runtime files.
 
-   ```sh
-   python3 tools/sprites.py
-   python3 tools/banners.py   # needs Pillow
-   python3 tools/header.py    # only if the base or rare sprites changed
-   ```
+Artwork builders use Python's standard library. Run them from the repository root; use the `--preview` options documented in `README.md` before replacing generated assets.
 
-4. Install your copy and check it. On macOS and Linux, `./install.sh` copies it into your Herdr home and runs `herdr-app check` on each mod. Your previous files go to `backups/middle-earth-<time>/`.
-5. Try it in Herdr: start an agent and watch it work, wait, finish and need you, in both light and dark mode.
-6. If you changed how the layout looks or behaves, update `RECIPE.md` too. The Herdr gallery and other people's agents build from it.
-7. Open a pull request and fill in the checklist.
+## Installation and safety
 
-## Style
+Use `./install.sh` to test the project in Herdr. The script replaces only this project's named layout, themes, backgrounds, and mods, backs up any existing matching files under `backups/star-wars-<timestamp>/`, validates all seven mods, and then tries to select the layout.
 
-- Match the code around your change. The mods started as clones of Herdr's own `agents`, `toast`, `workspace-status` and `spaces`.
-- Name constants instead of writing magic numbers, and comment why, not what.
-- Don't swallow errors: log them with `console.error`.
+Keep changes consistent across the repository and `share/star-wars/`. Do not add runtime network dependencies; the app package is intended to work from local assets.

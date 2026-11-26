@@ -1,92 +1,64 @@
 #!/usr/bin/env bash
-# Installs the Middle-earth layout into a Herdr desktop home and switches to it.
-# Anything it would replace is first moved to backups/middle-earth-<time>/.
+# Installs the Star Wars layout and its seven custom mods into a Herdr app home.
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HERDR_HOME="${HERDR_APP_HOME:-$HOME/.config/herdr-app}"
 STAMP="$(date +%Y%m%d-%H%M%S)"
-# Outside mods/ and layouts/: a backed-up mod folder left in mods/ would load as a mod of its own.
-BACKUP="$HERDR_HOME/backups/middle-earth-$STAMP"
-LAYOUT="middle-earth"
-MODS=(fellowship fellowship-toast fellowship-status realms)
-THEMES=(shire mordor)
+BACKUP="$HERDR_HOME/backups/star-wars-$STAMP"
+MODS=(star-wars-agents star-wars-alerts star-wars-status star-wars-systems star-wars-arena star-wars-bomb-run star-wars-tabs)
 
 fail() { echo "install.sh: $*" >&2; exit 1; }
+command -v herdr-app >/dev/null 2>&1 || fail "herdr-app is not on PATH. Install Herdr and try again."
 
-command -v python3 >/dev/null || fail "python3 is needed to merge settings.json and programs.json."
-[ -d "$HERDR_HOME" ] || fail "no Herdr home at $HERDR_HOME. Open Herdr once, or set HERDR_APP_HOME."
-
-# $1: a path relative to the Herdr home.
-keep_aside() {
-  if [ -e "$HERDR_HOME/$1" ]; then
-    mkdir -p "$(dirname "$BACKUP/$1")"
-    mv "$HERDR_HOME/$1" "$BACKUP/$1"
-    echo "  moved the old $1 to backups/middle-earth-$STAMP/"
+backup_path() {
+  local relative="$1" target="$HERDR_HOME/$1"
+  if [[ -e "$target" || -L "$target" ]]; then
+    mkdir -p "$BACKUP/$(dirname "$relative")"
+    mv "$target" "$BACKUP/$relative"
+    echo "  backed up $relative to backups/star-wars-$STAMP/"
   fi
 }
 
-echo "Installing into $HERDR_HOME"
-mkdir -p "$HERDR_HOME/layouts" "$HERDR_HOME/themes" "$HERDR_HOME/mods"
+install_file() {
+  local relative="$1" source="$REPO/$1" target="$HERDR_HOME/$1"
+  [[ -f "$source" ]] || fail "missing project file: $relative"
+  backup_path "$relative"
+  mkdir -p "$(dirname "$target")"
+  cp "$source" "$target"
+}
+
+replace_mod() {
+  local mod="$1" relative="mods/$1" target="$HERDR_HOME/mods/$1"
+  [[ -d "$REPO/$relative" ]] || fail "missing project mod: $relative"
+  backup_path "$relative"
+  mkdir -p "$HERDR_HOME/mods"
+  cp -R "$REPO/$relative" "$target"
+}
+
+mkdir -p "$HERDR_HOME"
+echo "Installing Star Wars for Herdr into $HERDR_HOME"
+
+for file in layouts/star-wars.json layouts/star-wars.png themes/light-side.json themes/dark-side.json; do
+  install_file "$file"
+done
+
+while IFS= read -r source; do
+  relative="${source#"$REPO"/}"
+  install_file "$relative"
+done < <(find "$REPO/backgrounds/ships" -type f ! -name .DS_Store -print)
 
 for mod in "${MODS[@]}"; do
-  keep_aside "mods/$mod"
-  cp -R "$REPO/mods/$mod" "$HERDR_HOME/mods/$mod"
-done
-for theme in "${THEMES[@]}"; do
-  keep_aside "themes/$theme.json"
-  cp "$REPO/themes/$theme.json" "$HERDR_HOME/themes/"
-done
-for file in "$LAYOUT.json" "$LAYOUT.png"; do
-  keep_aside "layouts/$file"
-  cp "$REPO/layouts/$file" "$HERDR_HOME/layouts/"
+  replace_mod "$mod"
 done
 
-# Sounds and program icons live in the person's own files, not the layout, so they are merged in.
-merge_json() {
-  local target="$HERDR_HOME/$1" snippet="$REPO/$2"
-  if [ -e "$target" ]; then mkdir -p "$BACKUP" && cp "$target" "$BACKUP/$1"; fi
-  python3 - "$target" "$snippet" <<'PY'
-import json, os, sys
+for mod in "${MODS[@]}"; do
+  HERDR_APP_HOME="$HERDR_HOME" herdr-app check "$HERDR_HOME/mods/$mod" \
+    || fail "mods/$mod failed Herdr validation; previous files are in the backup directory."
+done
 
-target, snippet = sys.argv[1], sys.argv[2]
-
-def merge(base, extra):
-    for key, value in extra.items():
-        if isinstance(value, dict) and isinstance(base.get(key), dict):
-            merge(base[key], value)
-        else:
-            base[key] = value
-    return base
-
-try:
-    current = json.load(open(target)) if os.path.exists(target) else {}
-except json.JSONDecodeError as e:
-    sys.exit(f"install.sh: {target} is not valid JSON ({e}); fix it and run again.")
-with open(target, "w") as f:
-    json.dump(merge(current, json.load(open(snippet))), f, indent=2)
-    f.write("\n")
-PY
-  echo "  merged $2 into $1"
-}
-merge_json settings.json settings.snippet.json
-merge_json programs.json programs.json
-
-if command -v herdr-app >/dev/null; then
-  for mod in "${MODS[@]}"; do
-    (cd "$HERDR_HOME" && herdr-app check "mods/$mod") || fail "mods/$mod did not load; see the message above."
-  done
-  herdr-app do layout.switch "{\"name\":\"$LAYOUT\"}" >/dev/null \
-    || echo "Herdr isn't running: pick Middle-earth with ctrl-shift-l when it opens."
+if HERDR_APP_HOME="$HERDR_HOME" herdr-app do layout.switch --name star-wars; then
+  echo "Star Wars layout installed and selected."
+else
+  echo "Installed, but Herdr could not switch layouts. Select Star Wars from the layout menu." >&2
 fi
-
-if [ "$(uname)" = "Darwin" ] && ! command -v terminal-notifier >/dev/null; then
-  cat <<'TXT'
-
-Optional: system banners with the character's sprite when Herdr is in the background.
-  brew install terminal-notifier
-  open "$(brew --prefix terminal-notifier)/terminal-notifier.app"   # allow notifications once
-TXT
-fi
-
-echo "Done. ctrl-shift-l switches layouts."

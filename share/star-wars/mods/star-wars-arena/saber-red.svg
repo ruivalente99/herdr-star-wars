@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="80" height="80" shape-rendering="crispEdges">
+  <title>Sabre vermelho de Vader, em guarda</title>
+  <g transform="translate(48 0) scale(-1 1)">
+    <path fill="#812f45" d="M8 36 36 8H40V12L12 40Z"/>
+    <path fill="#ff526a" d="M9 35 36 8H39V11L12 38Z"/>
+    <path fill="#fff0e8" d="M11 35 37 9H38V10L12 36Z"/>
+    <path fill="#11151f" d="M3 40 8 35H10L14 39V41L9 46H7Z"/>
+    <path fill="#708898" d="M5 40 9 36 12 39 8 43Z"/>
+    <path fill="#d5e4df" d="M6 39 8 37 11 40 9 42Z"/>
+    <rect x="6" y="42" width="2" height="2" fill="#344551"/>
+  </g>
+</svg>

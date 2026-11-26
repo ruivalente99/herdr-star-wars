@@ -1,10 +1,12 @@
-## What this changes
+## What changed
 
-<!-- One or two sentences, and a screenshot if it changes how something looks. -->
+<!-- Summarize the change. For visual changes, update the illustrations (no screenshots in the repo). -->
 
-## Checklist
+## Verification
 
-- [ ] Tested on: <!-- macOS / Linux / Windows, and the Herdr version -->
-- [ ] `herdr-app check` passes for every mod I touched
-- [ ] Art changed only through `tools/sprites.py`, then regenerated
-- [ ] `RECIPE.md` updated if the look or behavior changed
+- [ ] `node --test tools/*.test.mjs`
+- [ ] `herdr-app check` passes for each changed mod
+- [ ] `RECIPE.md` and `README.md` reflect behavior or visual changes
+- [ ] `share/star-wars/` package export is in sync where applicable
+
+Herdr version / OS: <!-- e.g. Herdr 0.x, macOS -->
