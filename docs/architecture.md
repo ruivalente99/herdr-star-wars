@@ -44,7 +44,7 @@ Standalone scenes use the active space's ship; expanded mini battles keep their 
 
 ### `star-wars-tabs`
 
-A copy of Herdr's built-in `tabs` mod with one change: the panel buttons list is Files/Changes (from shared `workspace.panels`) plus `bomb-run`, so Bomb Run opens from the top bar exactly like Files and Changes, and is remembered per space the same way.
+A copy of Herdr's built-in `tabs` mod with one change: the panel buttons list is Files/Changes (from shared `workspace.panels`) plus `bomb-run`, so Bomb Run opens from the top bar exactly like Files and Changes, and is remembered per space the same way. Its `toggle-bomb-run` command (palette: **Star Wars: Toggle Bomb Run**) flips shared `star-wars.bomb-run`; off removes the button and hides an open Bomb Run panel.
 
 ### `star-wars-bomb-run`
 

@@ -72,7 +72,8 @@ test("one Star Wars layout, exactly two theme palettes with identical roles", ()
   assert.equal(panel.header, undefined, "Panels open from the top bar like Herdr's Files/Changes");
   assert.equal(findLayoutNode(layout, "tabs").content.mod, "star-wars-tabs");
   assert.match(read("mods/star-wars-tabs/main.js"), /panelButton\("bomb-run", "Bomb Run"/);
-  assert.equal(read("share/star-wars/layouts/star-wars.json"), read("layouts/star-wars.json"));
+  assert.match(read("mods/star-wars-tabs/main.js"), /enabled\.includes\("bomb-run"\)/, "Bomb Run button must respect the toggle");
+  assert(json("mods/star-wars-tabs/mod.json").palette.some(entry => entry.command === "star-wars-tabs.toggle-bomb-run"));
   assert.deepEqual(layout.theme, { light: "light-side", dark: "dark-side" });
   assert(layout.terminal_opacity >= 0.85 && layout.terminal_opacity < 1);
   assert(existsSync(resolve(root, layout.preview)));

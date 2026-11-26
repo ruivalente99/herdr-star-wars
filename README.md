@@ -150,7 +150,7 @@ Expanded battles keep their source space's cockpit, even when another space is a
 
 ## Bomb Run
 
-A small Bomberman-style arcade game. Open it from the command palette or from the **Bomb Run** button in the top bar, next to Files and Changes. A second click hides it again:
+A small Bomberman-style arcade game. Open it from the command palette or from the **Bomb Run** button in the top bar, next to Files and Changes. A second click hides it again. Don't want the game? Run **Star Wars: Toggle Bomb Run** from the command palette to remove the button (run it again to bring it back); the setting is saved. To open it directly:
 
 ```sh
 herdr-app do mod.open --name star-wars-bomb-run
@@ -261,7 +261,7 @@ For the implementation map, see [Architecture](docs/architecture.md).
 
 ## Herdr gallery
 
-This repository is a [Herdr community layout](https://herdr.dev/layouts): the root holds `layouts/star-wars.json`, its `mods/`, the [`RECIPE.md`](RECIPE.md) brief and `preview.png`, and the repo carries the `herdr-layout` topic. `share/star-wars/` is the same package as a self-contained folder; keep it in sync with the root (`tools/docs.test.mjs` checks it).
+This repository is a [Herdr community layout](https://herdr.dev/layouts): the root holds `layouts/star-wars.json`, its `mods/`, the [`RECIPE.md`](RECIPE.md) brief and `preview.png`, and the repo carries the `herdr-layout` topic.
 
 ## Inspiration and credits
 

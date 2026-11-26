@@ -135,8 +135,7 @@ test("Linux still uses notify-send; Windows keeps the in-app notification", asyn
   assert(hasText(windows.state.nodes, "Done"));
 });
 
-test("the shared export ships the same safe notification implementation", () => {
-  assert.equal(read("share/star-wars/mods/star-wars-alerts/main.js"), notificationSource);
+test("notification mod uses no AppleScript or open fallbacks", () => {
   assert(!notificationSource.includes("SYSTEM_NOTIFICATION"));
   assert(!/exec\(["'](?:osascript|open)["']/.test(notificationSource));
 });

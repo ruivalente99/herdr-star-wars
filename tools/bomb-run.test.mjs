@@ -81,9 +81,7 @@ function harness({ overlay = false, focus = false, storage = new Map(), checking
   return { state, view, cx, render, node, handler, click, key, advance, advanceMs };
 }
 
-test("shared package exports the same mod, scene, assets and palette command", () => {
-  const runtime = files("mods/star-wars-bomb-run").filter(path => !path.endsWith(".d.ts"));
-  for (const path of runtime) assert.equal(read(`share/star-wars/${path}`), read(path), path);
+test("Bomb Run registers its palette command and layout panel props", () => {
   const metadata = JSON.parse(read("mods/star-wars-bomb-run/mod.json"));
   assert.equal(metadata.palette[0].args.name, "star-wars-bomb-run");
   const tree = JSON.parse(read("layouts/star-wars.json"));

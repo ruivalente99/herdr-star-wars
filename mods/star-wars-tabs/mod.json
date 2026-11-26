@@ -1,6 +1,9 @@
 {
   "place": "none",
   "title": "Star Wars · Tabs",
+  "palette": [
+    { "title": "Star Wars: Toggle Bomb Run", "command": "star-wars-tabs.toggle-bomb-run", "words": "bomb run game disable enable hide show top bar button" }
+  ],
   "cloned_from": {
     "name": "tabs",
     "version": "0.1.16"

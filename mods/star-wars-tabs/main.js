@@ -1,6 +1,10 @@
 import { View, div, svg, image } from "gpui-kit";
 import { h_flex, ScrollHandle } from "gpui-base";
-import { spaces, panes, run, openOverlay, theme, window, shared, layout, settings } from "herdr";
+import { spaces, panes, run, openOverlay, theme, window, shared, setShared, layout, settings, checking, nextCommand } from "herdr";
+
+// star-wars: shared on/off switch for the Bomb Run panel button (default on).
+const BOMB_RUN = "star-wars.bomb-run";
+const bombRunOn = () => shared(BOMB_RUN) !== false;
 
 function find(node, id) {
   if (node?.id === id) return node;
@@ -28,7 +32,16 @@ function label(tab, lead) {
 }
 
 export default class Tabs extends View {
-  init() {
+  init(_props, cx) {
+    if (!checking()) cx.spawn(async () => {
+      for (;;) {
+        if (await nextCommand() !== "toggle-bomb-run") continue;
+        const on = !bombRunOn();
+        setShared(BOMB_RUN, on);
+        const root = layout(), panel = find(root, "panel"), body = find(root, "panel-body");
+        if (!on && panel && !panel.hidden && body?.active === "bomb-run") run("layout.hide", { id: "panel" });
+      }
+    });
     this.pressed = null;
     this.scroll = ScrollHandle.new();
     try { this.panels = JSON.parse(localStorage.getItem("panels") ?? "{}"); } catch { this.panels = {}; }
@@ -129,8 +142,8 @@ export default class Tabs extends View {
       ? Math.max(10, (root.traffic_lights[0] + 64) / settings().zoom - (sidebar?.hidden ? 0 : sidebar?.size?.px ?? 0))
       : 10;
     const panel = find(root, "panel"), body = find(root, "panel-body");
-    // star-wars: Bomb Run always gets its own panel button beside Files and Changes.
-    const enabled = [...(shared("workspace.panels") ?? ["files", "changes"]), "bomb-run"];
+    // star-wars: Bomb Run gets its own panel button beside Files and Changes unless switched off.
+    const enabled = [...(shared("workspace.panels") ?? ["files", "changes"]), ...(bombRunOn() ? ["bomb-run"] : [])];
     this.syncPanel(space, panel, body, enabled);
     const panelButton = (id, label, icon) => {
       const on = panel && !panel.hidden && body?.active === id;
@@ -151,7 +164,7 @@ export default class Tabs extends View {
       .child(button("tab-new", "+", () => openOverlay({ mod: "new-menu", kind: "popup", width: 250, height: 512 })))
       .when(enabled.includes("files"), el => el.child(panelButton("files", "Files", "mods/files/file.svg")))
       .when(enabled.includes("changes"), el => el.child(panelButton("changes", "Changes", "mods/changes/changes.svg")))
-      .child(panelButton("bomb-run", "Bomb Run", "mods/star-wars-tabs/bomb.svg"))
+      .when(enabled.includes("bomb-run"), el => el.child(panelButton("bomb-run", "Bomb Run", "mods/star-wars-tabs/bomb.svg")))
       .when(w?.buttons, el => el.child(button("minimize", w.platform === "windows" ? svg("mods/tabs/win-min.svg").size(16) : "−", () => run("window.minimize")))
         .child(button("maximize", w.platform === "windows" ? svg(`mods/tabs/${w.maximized ? "win-restore" : "win-max"}.svg`).size(16) : "□", () => run("window.maximize")))
         .child(button("close-window", w.platform === "windows" ? svg("mods/tabs/win-close.svg").size(16) : svg("mods/pane/close.svg").size(13), () => run("window.close"))));

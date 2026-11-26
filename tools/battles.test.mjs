@@ -77,17 +77,11 @@ function assertAssets(nodes) {
   for (const { asset } of nodes) if (asset) assert(existsSync(resolve(root, asset)), `Missing asset: ${asset}`);
 }
 
-test("shared Battle Simulator command ships the current Arena and all required sprite assets", () => {
-  for (const file of ["main.js", "scene.js", "choreography.js", "mod.json"]) {
-    const path = `mods/star-wars-arena/${file}`;
-    assert.equal(read(`share/star-wars/${path}`), read(path), `Stale shared Arena: ${file}`);
-  }
+test("Battle Simulator command ships the Arena palette entry and required sprite assets", () => {
   for (const folder of ["mods/star-wars-agents/sprites/star-wars", "mods/star-wars-agents/sprites/star-wars/weapons"]) {
-    for (const file of readdirSync(resolve(root, folder)).filter(name => name.endsWith(".svg"))) {
-      assert.equal(read(`share/star-wars/${folder}/${file}`), read(`${folder}/${file}`), `Stale or missing shared sprite: ${file}`);
-    }
+    assert(readdirSync(resolve(root, folder)).some(name => name.endsWith(".svg")), `Missing sprites in ${folder}`);
   }
-  const metadata = JSON.parse(read("share/star-wars/mods/star-wars-arena/mod.json"));
+  const metadata = JSON.parse(read("mods/star-wars-arena/mod.json"));
   const command = metadata.palette.find(entry => entry.title === "Star Wars: Battle Simulator");
   assert(command);
   assert.equal(command.command, "mod.open");
@@ -248,33 +242,32 @@ test("expanded battles keep the source ship and front clicks focus only their co
   assert.equal(checked.state.timers.length, 0);
 });
 
-test("mini-battle messages occupy a separate flow row below sprites in source and shared export", () => {
-  for (const path of ["mods/star-wars-agents/battle.js", "share/star-wars/mods/star-wars-agents/battle.js"]) {
-    for (const width of [180, 268, 360]) {
-      for (const count of [2, 4, 8]) {
-        const host = ui();
-        const battle = new Function("host", `const { div, image, h_flex, shared, settings, layout } = host;\n${source(path)}\nreturn battleScene;`)({
-          ...host, shared: () => ({}), settings: () => ({ dark: true }),
-          layout: () => ({ id: "sidebar", size: { px: width } }),
-        });
-        const heroes = ["vader", "luke", "han", "chewbacca", "leia", "r2d2", "yoda", "emperor-palpatine"];
-        const members = heroes.slice(0, count).map((hero, index) => ({ address: `a${index}`, status: "working" }));
-        const cast = Object.fromEntries(members.map((agent, index) => [agent.address, heroes[index]]));
-        const stage = battle("one", members, cast, theme(), { turn: 1 });
-        const field = byId(host.nodes, "fight-field-one");
-        const comms = byId(host.nodes, "fight-comms-one");
-        assert(field && comms, `${path}: missing separate field or comms`);
-        assert(stage.calls.some(call => call[0] === "flex_col"), path);
-        const children = stage.calls.filter(call => call[0] === "child").map(call => call[1]);
-        const fieldIndex = children.findIndex(child => child?.calls === field.calls);
-        const commsIndex = children.findIndex(child => child?.calls === comms.calls);
-        assert(fieldIndex >= 0 && commsIndex > fieldIndex, `${path}: comms must follow the field`);
-        assert(!comms.calls.some(call => ["absolute", "top", "bottom"].includes(call[0])), `${path}: no floating message overlay`);
-        assert(comms.calls.some(call => call[0] === "flex_none"), `${path}: comms must reserve height`);
-        assert(comms.calls.some(call => call[0] === "overflow_hidden"), `${path}: text must stay inside comms`);
-        const height = node => node.calls.find(call => call[0] === "h")?.[1] ?? 0;
-        assert(height(stage) >= height(field) + height(comms) + 2, `${path}: both rows must fit inside the border`);
-      }
+test("mini-battle messages occupy a separate flow row below sprites", () => {
+  const path = "mods/star-wars-agents/battle.js";
+  for (const width of [180, 268, 360]) {
+    for (const count of [2, 4, 8]) {
+      const host = ui();
+      const battle = new Function("host", `const { div, image, h_flex, shared, settings, layout } = host;\n${source(path)}\nreturn battleScene;`)({
+        ...host, shared: () => ({}), settings: () => ({ dark: true }),
+        layout: () => ({ id: "sidebar", size: { px: width } }),
+      });
+      const heroes = ["vader", "luke", "han", "chewbacca", "leia", "r2d2", "yoda", "emperor-palpatine"];
+      const members = heroes.slice(0, count).map((hero, index) => ({ address: `a${index}`, status: "working" }));
+      const cast = Object.fromEntries(members.map((agent, index) => [agent.address, heroes[index]]));
+      const stage = battle("one", members, cast, theme(), { turn: 1 });
+      const field = byId(host.nodes, "fight-field-one");
+      const comms = byId(host.nodes, "fight-comms-one");
+      assert(field && comms, `${path}: missing separate field or comms`);
+      assert(stage.calls.some(call => call[0] === "flex_col"), path);
+      const children = stage.calls.filter(call => call[0] === "child").map(call => call[1]);
+      const fieldIndex = children.findIndex(child => child?.calls === field.calls);
+      const commsIndex = children.findIndex(child => child?.calls === comms.calls);
+      assert(fieldIndex >= 0 && commsIndex > fieldIndex, `${path}: comms must follow the field`);
+      assert(!comms.calls.some(call => ["absolute", "top", "bottom"].includes(call[0])), `${path}: no floating message overlay`);
+      assert(comms.calls.some(call => call[0] === "flex_none"), `${path}: comms must reserve height`);
+      assert(comms.calls.some(call => call[0] === "overflow_hidden"), `${path}: text must stay inside comms`);
+      const height = node => node.calls.find(call => call[0] === "h")?.[1] ?? 0;
+      assert(height(stage) >= height(field) + height(comms) + 2, `${path}: both rows must fit inside the border`);
     }
   }
 });
@@ -315,17 +308,15 @@ test("Arena current and previous dialogue have separate bubbles, portraits and m
   assertAssets(fixture.nodes);
 });
 
-test("shared mini bubbles do not attribute lines to fighters hidden on the bench", () => {
-  const host = ui();
-  const battle = new Function("host", `const { div, image, h_flex, shared, settings, layout } = host;\n${source("share/star-wars/mods/star-wars-agents/battle.js")}\nreturn battleScene;`)({
-    ...host, shared: () => ({}), settings: () => ({ dark: true }), layout: () => ({ id: "sidebar", size: { px: 268 } }),
-  });
+test("mini bubbles do not attribute lines to fighters hidden on the bench", () => {
+  const mini = miniFixture(268);
   const heroes = ["han", "boba-fett", "c3po", "r2d2", "vader", "luke"];
   const members = heroes.map((hero, index) => ({ address: `a${index}` }));
   const cast = Object.fromEntries(members.map((agent, index) => [agent.address, heroes[index]]));
-  battle("one", members, cast, theme());
-  assert(!byId(host.nodes, "fight-comms-one"));
-  assert(!hasText(host.nodes, "I am your father."));
+  mini.battleScene("one", members, cast, theme());
+  assert(!hasText(mini.nodes, "I am your father."));
+  assert(!hasText(mini.nodes, "Vader"));
+  assert(!hasText(mini.nodes, "Luke"));
 });
 
 test("mini battles paginate every agent, keep duplicates and normalize page after departures", () => {

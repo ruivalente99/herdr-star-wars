@@ -16,7 +16,6 @@ Bug reports, fixes, accessibility improvements, and testing on other platforms a
 - `mods/`: seven custom Herdr modules.
 - `backgrounds/ships/`: generated cockpit backgrounds.
 - `tools/build-sprites.py`, `tools/build-ship-backgrounds.py`: artwork sources and generators.
-- `share/star-wars/`: installable package export; keep it in sync with runtime files.
 
 Artwork builders use Python's standard library. Run them from the repository root; use the `--preview` options documented in `README.md` before replacing generated assets.
 
@@ -24,4 +23,4 @@ Artwork builders use Python's standard library. Run them from the repository roo
 
 Use `./install.sh` to test the project in Herdr. The script replaces only this project's named layout, themes, backgrounds, and mods, backs up any existing matching files under `backups/star-wars-<timestamp>/`, validates all seven mods, and then tries to select the layout.
 
-Keep changes consistent across the repository and `share/star-wars/`. Do not add runtime network dependencies; the app package is intended to work from local assets.
+Do not add runtime network dependencies; the app package is intended to work from local assets.

@@ -46,11 +46,11 @@ test("overview is a self-contained, wide SVG with explicit illustration provenan
   }
 });
 
-test("root recipe and preview match the installable export", () => {
+test("root recipe and preview are present for the Herdr gallery", () => {
   assert(read("RECIPE.md").includes("# Star Wars"));
   assert(read("RECIPE.md").includes("![Star Wars for Herdr](preview.png)"));
-  assert(readFileSync(resolve(root, "RECIPE.md")).equals(readFileSync(resolve(root, "share/star-wars/RECIPE.md"))));
-  assert(readFileSync(resolve(root, "preview.png")).equals(readFileSync(resolve(root, "share/star-wars/preview.png"))));
+  assert(existsSync(resolve(root, "preview.png")));
+  assert(!existsSync(resolve(root, "share")), "Keep only the root layout package so Herdr gallery does not list duplicates");
 });
 
 test("installer backs up only matching files, validates mods and installs the layout", () => {
