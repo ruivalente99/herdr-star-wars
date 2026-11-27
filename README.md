@@ -153,7 +153,7 @@ Expanded battles keep their source space's cockpit, even when another space is a
 A small Bomberman-style arcade game. Open it from the command palette or from the **Bomb Run** button in the top bar, next to Files and Changes. A second click hides it again. Don't want the game? Run **Star Wars: Toggle Bomb Run** from the command palette to remove the button (run it again to bring it back); the setting is saved. To open it directly:
 
 ```sh
-herdr-app do mod.open --name star-wars-bomb-run
+herdr-app do mod.open --name bomb-run
 ```
 
 A dedicated pixel-art deck, with space visible through the forward windows, wall consoles, destructible coolant cells and thermal detonators. A single icon toolbar, inline counters and a small pilot strip use Herdr's theme; the map keeps its own pixel palette. Start, pause and defeat messages appear in a compact lower ribbon rather than covering the center of the arena. The **sliders icon** opens mission options and the upgrade list; on-screen directional controls are optional and hidden by default. Your pilot uses the character assigned to an open agent, with three-pose walking atlases in four directions — no floating avatar or whole-body bounce.
@@ -231,10 +231,9 @@ Notification permissions may also need to be enabled in the operating system. If
 | Interface colors and cockpit palettes | `themes/light-side.json`, `themes/dark-side.json` |
 | Character pixels and palettes | `tools/build-sprites.py` |
 | Arena presets, character profiles and dialogue | `mods/star-wars-arena/choreography.js` |
-| Bomb Run compact chrome and options drawer | `mods/star-wars-bomb-run/ui.js` |
-| Bomb Run grid, buffs and game rules | `mods/star-wars-bomb-run/game.js` |
-| Bomb Run zone identities and wall maps | `mods/star-wars-bomb-run/decks.js` |
-| Bomb Run deck, props, bitmap labels and walking atlases | `tools/build-bomb-run-art.py` |
+| Bomb Run standalone engine | `mods/bomb-run/` (synced from `herdr-common`) |
+| Bomb Run Star Wars skin override, decks and labels | `pack.config.mjs` → `mods/star-wars-tabs/bomb-run-override.{js,json}` |
+| Bomb Run deck, props, bitmap labels and walking atlases | `tools/build-bomb-run-art.py` → `mods/star-wars-tabs/arcade/` |
 | Mini-battle dialogue and presentation | `mods/star-wars-agents/battle.js` |
 | README illustrations and `preview.png` | `tools/build-readme-art.py` |
 

@@ -3,8 +3,17 @@ import { View, div, svg, image } from "gpui-kit";
 import { h_flex, ScrollHandle } from "gpui-base";
 import { spaces, panes, run, openOverlay, theme, window, shared, setShared, layout, settings, checking, nextCommand } from "herdr";
 import { TABS_CONFIG } from "./config.js";
+import { BOMB_RUN_OVERRIDE } from "./bomb-run-override.js";
 
 const arcadeOn = () => shared(TABS_CONFIG.sharedToggleKey) !== false;
+
+function registerBombRunOverride() {
+  if (checking() || !TABS_CONFIG.layoutName || !BOMB_RUN_OVERRIDE) return;
+  const current = shared("bomb-run.overrides");
+  const map = current && typeof current === "object" && !Array.isArray(current) ? current : {};
+  if (map[TABS_CONFIG.layoutName]?.id === BOMB_RUN_OVERRIDE.id && map[TABS_CONFIG.layoutName]?.artDir === BOMB_RUN_OVERRIDE.artDir) return;
+  setShared("bomb-run.overrides", { ...map, [TABS_CONFIG.layoutName]: BOMB_RUN_OVERRIDE });
+}
 
 function find(node, id) {
   if (node?.id === id) return node;
@@ -33,6 +42,7 @@ function label(tab, lead) {
 
 export default class Tabs extends View {
   init(_props, cx) {
+    registerBombRunOverride();
     if (!checking()) cx.spawn(async () => {
       for (;;) {
         if (await nextCommand() !== TABS_CONFIG.toggleCommand) continue;

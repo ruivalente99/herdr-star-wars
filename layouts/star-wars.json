@@ -148,11 +148,12 @@
                       "title": "Bomb Run",
                       "type": "block",
                       "content": {
-                        "mod": "star-wars-bomb-run",
+                        "mod": "bomb-run",
                         "props": {
                           "panel": "panel",
                           "stack": "panel-body",
-                          "child": "bomb-run"
+                          "child": "bomb-run",
+                          "override": "mods/star-wars-tabs/bomb-run-override.json"
                         }
                       }
                     }

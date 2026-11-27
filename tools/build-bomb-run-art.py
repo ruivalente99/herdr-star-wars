@@ -14,7 +14,7 @@ import struct
 import zlib
 
 ROOT = Path(__file__).resolve().parents[1]
-ART = ROOT / "mods/star-wars-bomb-run/art"
+ART = ROOT / "mods/star-wars-tabs/arcade"
 CAST = ROOT / "mods/star-wars-agents/sprites/star-wars"
 INK = "#11151f"
 
@@ -472,7 +472,7 @@ def main(preview=None):
         for path in old_walk.glob("*.svg"):
             path.unlink()
         old_walk.rmdir()
-    specs = json.loads((ROOT / "mods/star-wars-bomb-run/decks.js").read_text().removeprefix("export const DECKS = ").strip().removesuffix(";"))
+    specs = json.loads((ROOT / "mods/star-wars-tabs/bomb-run-override.json").read_text())["decks"]
     for spec in specs:
         deck(spec)
     props()

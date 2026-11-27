@@ -18,8 +18,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DEST = ROOT / "docs/images/overview.svg"
 ARENA = ROOT / "docs/images/arena.svg"
 BOMB_RUN = ROOT / "docs/images/bomb-run.svg"
-DECK = ROOT / "mods/star-wars-bomb-run/decks.js"
-BOMB_ART = "mods/star-wars-bomb-run/art"
+DECK = ROOT / "mods/star-wars-tabs/bomb-run-override.json"
+BOMB_ART = "mods/star-wars-tabs/arcade"
 SPRITES = "mods/star-wars-agents/sprites/star-wars"
 SYMBOLS = {}
 
@@ -166,8 +166,7 @@ def build_arena():
 def build_bomb_run():
     SYMBOLS.clear()
     t = dark_theme()
-    source = DECK.read_text()
-    hangar = json.loads(source[source.index("["):source.rindex("]") + 1])[1]
+    hangar = json.loads(DECK.read_text())["decks"][1]
     scale, ox, oy = 2, 24, 124
     tile = lambda c, r: (ox + c * 16 * scale, oy + (32 + r * 16) * scale)
     body = [rect(0, 0, 464, 640, t["background"], 14),

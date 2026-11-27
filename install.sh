@@ -6,7 +6,7 @@ REPO="$(cd "$(dirname "$0")" && pwd)"
 HERDR_HOME="${HERDR_APP_HOME:-$HOME/.config/herdr-app}"
 STAMP="$(date +%Y%m%d-%H%M%S)"
 BACKUP="$HERDR_HOME/backups/star-wars-$STAMP"
-MODS="star-wars-agents star-wars-alerts star-wars-status star-wars-systems star-wars-arena star-wars-bomb-run star-wars-tabs"
+MODS="star-wars-agents star-wars-alerts star-wars-status star-wars-systems star-wars-arena bomb-run star-wars-tabs"
 
 fail() { echo "install.sh: $*" >&2; exit 1; }
 command -v herdr-app >/dev/null 2>&1 || fail "herdr-app is not on PATH. Install Herdr and try again."
