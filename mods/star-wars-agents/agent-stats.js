@@ -1,3 +1,4 @@
+// Synced from herdr-common (mods/agents/agent-stats.js). Do not edit directly; edit pack.config.mjs and run sync.
 // Model and context use, read off an agent's screen: Herdr doesn't report either.
 // Statuslines sit at the bottom, so only the last lines count, newest match first.
 

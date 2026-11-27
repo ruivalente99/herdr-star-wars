@@ -1,0 +1,10 @@
+{
+  "name": "herdr-star-wars",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync": "node tools/sync.mjs",
+    "check:sync": "node tools/sync.mjs --check",
+    "test": "node --test tools/*.test.mjs"
+  }
+}

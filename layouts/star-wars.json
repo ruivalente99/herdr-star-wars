@@ -149,7 +149,11 @@
                       "type": "block",
                       "content": {
                         "mod": "star-wars-bomb-run",
-                        "props": { "panel": "panel", "stack": "panel-body", "child": "bomb-run" }
+                        "props": {
+                          "panel": "panel",
+                          "stack": "panel-body",
+                          "child": "bomb-run"
+                        }
                       }
                     }
                   ],
@@ -181,7 +185,10 @@
       "resizable": false
     }
   ],
-  "background": { "image": "backgrounds/ships/dark-side/millennium-falcon.png", "fit": "cover" },
+  "background": {
+    "image": "backgrounds/ships/dark-side/millennium-falcon.png",
+    "fit": "cover"
+  },
   "terminal_opacity": 0.88,
   "terminal_padding": [
     14,

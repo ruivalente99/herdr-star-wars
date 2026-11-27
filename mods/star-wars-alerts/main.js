@@ -1,3 +1,4 @@
+// Synced from herdr-common (mods/alerts/main.js). Do not edit directly; edit pack.config.mjs and run sync.
 // How notifications look. Anything can post one with notify({ title, body,
 // level, icon, action }); replace this mod to restyle them all. Click to
 // run its action (e.g. go to the agent) and dismiss it.
@@ -5,96 +6,10 @@
 import { View, div, image } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
 import { props, closeOverlay, run, theme, shared, exec, window, appHome, checking } from "herdr";
+import { ALERTS_CONFIG } from "./config.js";
 
-// Shared character assignments from the Star Wars Agents mod.
-const CAST_KEY = "star-wars-agents.cast";
 const HERO_ICON_SIZE = 28;
 const AGENT_TOAST = /^(.+) (finished|needs you)$/;
-const QUEST = {
-  finished: { pose: "done", line: "completed the mission" },
-  "needs you": { pose: "blocked", line: "needs backup" },
-};
-const HERO_NAMES = {
-  vader: "Darth Vader",
-  luke: "Luke Skywalker",
-  leia: "Princess Leia",
-  han: "Han Solo",
-  chewbacca: "Chewbacca",
-  stormtrooper: "Stormtrooper",
-  r2d2: "R2-D2",
-  "obi-wan": "Obi-Wan Kenobi",
-  yoda: "Yoda",
-  "boba-fett": "Boba Fett",
-  c3po: "C-3PO",
-  padme: "Padmé Amidala",
-  ahsoka: "Ahsoka Tano",
-  "mace-windu": "Mace Windu",
-  "emperor-palpatine": "Emperor Palpatine",
-};
-const HERO_LINES = {
-  vader: {
-    done: (name) => `${name} has brought order to the galaxy`,
-    blocked: (name) => `${name} requires your immediate attention`,
-  },
-  luke: {
-    done: (name) => `${name} has completed the mission`,
-    blocked: (name) => `${name} needs a hand`,
-  },
-  leia: {
-    done: (name) => `${name} has secured the plans`,
-    blocked: (name) => `${name} is calling for backup`,
-  },
-  han: {
-    done: (name) => `${name} made the jump`,
-    blocked: (name) => `${name} needs a co-pilot`,
-  },
-  chewbacca: {
-    done: (name) => `${name} roars in triumph`,
-    blocked: (name) => `${name} is calling for help`,
-  },
-  stormtrooper: {
-    done: (name) => `${name} reports: target secured`,
-    blocked: (name) => `${name} lost the target`,
-  },
-  r2d2: {
-    done: (name) => `${name} beeps: mission complete`,
-    blocked: (name) => `${name} is sending an alert`,
-  },
-  "obi-wan": {
-    done: (name) => `${name} has brought balance to the mission`,
-    blocked: (name) => `${name} is waiting for backup`,
-  },
-  yoda: {
-    done: (name) => `Mission complete, hmm. Yoda has.`,
-    blocked: (name) => `A disturbance in the mission, Yoda senses.`,
-  },
-  "boba-fett": {
-    done: (name) => `${name} returned with the bounty`,
-    blocked: (name) => `${name}'s target is still at large`,
-  },
-  c3po: {
-    done: (name) => `${name} calculates a successful mission`,
-    blocked: (name) => `${name} reports a highly improbable outcome`,
-  },
-  padme: {
-    done: (name) => `${name} has secured the alliance`,
-    blocked: (name) => `${name} requests reinforcements`,
-  },
-  ahsoka: {
-    done: (name) => `${name} completed the mission her way`,
-    blocked: (name) => `${name} could use a hand`,
-  },
-  "mace-windu": {
-    done: (name) => `${name} has delivered justice`,
-    blocked: (name) => `${name} needs backup to finish this`,
-  },
-  "emperor-palpatine": {
-    done: () => "Everything is proceeding as foreseen",
-    blocked: () => "The Emperor foresees complications",
-  },
-};
-
-// Only clicking a native banner should bring Herdr forward.
 const HERDR_BUNDLE = "dev.herdr.app";
 
 function reportFailure(tool) {
@@ -103,16 +18,16 @@ function reportFailure(tool) {
 
 // AppleScript banners can be attributed to Script Editor and open it when clicked.
 // Never fall back to a script runner: keep the in-app toast if the native helper is unavailable.
-function postToMacos(title, body, image) {
-  const picture = image ? ["-contentImage", `${appHome()}/${image}`] : [];
+function postToMacos(title, body, iconPath) {
+  const picture = iconPath ? ["-contentImage", `${appHome()}/${iconPath}`] : [];
   exec("terminal-notifier", ["-title", title, "-message", body || " ", "-activate", HERDR_BUNDLE, ...picture]).then(
     reportFailure("terminal-notifier"),
     (e) => console.warn(`Native macOS banner unavailable: ${e}. In-app alerts remain available. Install terminal-notifier (brew install terminal-notifier) to enable system banners.`),
   );
 }
 
-function postToLinux(title, body, image) {
-  const icon = image ? ["-i", `${appHome()}/${image}`] : [];
+function postToLinux(title, body, iconPath) {
+  const icon = iconPath ? ["-i", `${appHome()}/${iconPath}`] : [];
   exec("notify-send", ["-a", "Herdr", ...icon, title, body]).then(
     reportFailure("notify-send"),
     (e) => console.error(`System notification failed (is notify-send installed?): ${e}`),
@@ -121,22 +36,23 @@ function postToLinux(title, body, image) {
 
 // The in-app toast can't be seen from behind another app, so mirror it to the system's banners.
 // Windows has no banner command to call, so there the in-app toast is all.
-function postToSystem(platform, title, body, image) {
-  if (platform === "macos") postToMacos(title, body, image);
-  if (platform === "linux") postToLinux(title, body, image);
+function postToSystem(platform, title, body, iconPath) {
+  if (platform === "macos") postToMacos(title, body, iconPath);
+  if (platform === "linux") postToLinux(title, body, iconPath);
 }
 
 function heroOf(p) {
   const event = AGENT_TOAST.exec(p.title ?? "");
   const terminal = p.action?.name === "agent.focus" ? p.action.args?.terminal : null;
-  const hero = terminal ? shared(CAST_KEY)?.[terminal] : null;
-  if (!event || !hero || !HERO_NAMES[hero]) return null;
-  const { pose, line } = QUEST[event[2]];
-  const name = HERO_NAMES[hero];
+  const hero = terminal ? shared(ALERTS_CONFIG.castKey)?.[terminal] : null;
+  if (!event || !hero || !Object.hasOwn(ALERTS_CONFIG.heroNames, hero)) return null;
+  const { pose, line } = ALERTS_CONFIG.quest[event[2]];
+  const name = ALERTS_CONFIG.heroNames[hero];
+  const template = ALERTS_CONFIG.heroLines[hero]?.[pose];
   return {
-    title: HERO_LINES[hero]?.[pose](name) ?? `${name} ${line}`,
+    title: template ? template.replaceAll("{name}", name) : `${name} ${line}`,
     body: p.body ? `${event[1]} · ${p.body}` : event[1],
-    icon: `mods/star-wars-agents/sprites/star-wars/${hero}.svg`,
+    icon: `${ALERTS_CONFIG.spriteDir}/${hero}.svg`,
     banner: null,
   };
 }
@@ -153,7 +69,7 @@ export default class Toast extends View {
     postToSystem(w.platform, p.title ?? "Herdr", p.body ?? "", p.banner);
   }
 
-  render(cx) {
+  render() {
     const t = theme();
     const raw = props() ?? {};
     const p = { ...raw, ...heroOf(raw) };
@@ -183,7 +99,7 @@ export default class Toast extends View {
           .when(Boolean(login), (el) => el.child(h_flex().gap(8).items_center()
             .child(div().flex_1().min_w(0).truncate().tooltip(command).text_size(12).text_color(t.muted).child(command))
             .child(div().id("toast-login-copy").flex_none().px(6).py(3).rounded(4).bg(t.raised)
-              .text_size(12).text_color(t.foreground).cursor_pointer().hover(s => s.bg(t.hover))
+              .text_size(12).text_color(t.foreground).cursor_pointer().hover((s) => s.bg(t.hover))
               .on_click((_e, cx) => { cx.stop_propagation(); cx.write_to_clipboard(command); this.copied = true; cx.notify(); })
               .child(this.copied ? "Copied" : "Copy")))),
       );

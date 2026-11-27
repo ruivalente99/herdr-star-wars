@@ -1,12 +1,18 @@
 {
   "place": "none",
   "title": "Star Wars · Bomb Run",
-  "overlay": { "kind": "dialog", "width": 720, "height": 700 },
+  "overlay": {
+    "kind": "dialog",
+    "width": 720,
+    "height": 700
+  },
   "palette": [
     {
       "title": "Star Wars: Bomb Run",
       "command": "mod.open",
-      "args": { "name": "star-wars-bomb-run" },
+      "args": {
+        "name": "star-wars-bomb-run"
+      },
       "words": "bomberman bombs maze arcade game mini-game agents"
     }
   ]

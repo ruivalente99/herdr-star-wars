@@ -69,12 +69,21 @@ The `thinking-only` preference defaults to Off. When On, every simulation tick a
 
 Theme JSON files are the source of semantic interface colors and cockpit colors. Character and weapon art keeps its own palette.
 
+## Shared Engine (`herdr-common`)
+
+All seven mod engines, `layouts/star-wars.json`, `install.sh`, and the regression test suite are maintained centrally in the sibling [`herdr-common`](../herdr-common) library and synced from [`pack.config.mjs`](../pack.config.mjs). Edit labels, characters, quotes, ships, or Bomb Run decks in `pack.config.mjs`, then run:
+
+```sh
+npm run sync
+```
+
 ## Verification
 
-Run the theme and behavior regression tests from the project root:
+Run the theme, behavior, and sync-drift regression tests from the project root:
 
 ```sh
 node --test tools/*.test.mjs
+npm run check:sync
 ```
 
 Validate a mod with Herdr's checker, for example:

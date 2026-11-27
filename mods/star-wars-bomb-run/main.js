@@ -1,21 +1,15 @@
+// Synced from herdr-common (mods/arcade/main.js). Do not edit directly; edit pack.config.mjs and run sync.
 import { View } from "gpui-kit";
 import { agents, closeOverlay, checking, props, shared, spaces, theme, window, layout, run, openOverlay } from "herdr";
+import { ARCADE_CONFIG } from "./config.js";
 import { TICK_MS, cyclePayload, deckFor, powerFor, movePlayer, newGame, nextLevel, normalizeProfile, placeBomb, placeLine, tick } from "./game.js";
 import { gamePanel } from "./ui.js";
 
-const NAMES = {
-  vader: "Darth Vader", luke: "Luke Skywalker", leia: "Princess Leia", han: "Han Solo",
-  chewbacca: "Chewbacca", stormtrooper: "Stormtrooper", r2d2: "R2-D2", "obi-wan": "Obi-Wan Kenobi",
-  yoda: "Yoda", "boba-fett": "Boba Fett", c3po: "C-3PO", padme: "Padmé Amidala",
-  ahsoka: "Ahsoka Tano", "mace-windu": "Mace Windu", "emperor-palpatine": "Emperor Palpatine",
-};
-const SHIPS = {
-  "millennium-falcon": "Millennium Falcon", "x-wing": "X-wing", "tie-fighter": "TIE Fighter",
-  "star-destroyer": "Star Destroyer", "y-wing": "Y-wing", "a-wing": "A-wing", "imperial-shuttle": "Imperial Shuttle",
-};
+const NAMES = ARCADE_CONFIG.heroNames;
+const LOCATIONS = ARCADE_CONFIG.locationNames;
 const MOVES = { up: [0, -1], w: [0, -1], down: [0, 1], s: [0, 1], left: [-1, 0], a: [-1, 0], right: [1, 0], d: [1, 0] };
-const keyOf = event => String(event.key ?? event.keystroke).toLowerCase().replace(/^arrow/, "");
-const PROGRESS_KEY = "pilot-progress";
+const keyOf = (event) => String(event.key ?? event.keystroke).toLowerCase().replace(/^arrow/, "");
+const PROGRESS_KEY = ARCADE_CONFIG.progressKey;
 
 function loadProgress() {
   try {
@@ -42,7 +36,7 @@ export function gameVisible(tree, ownProps) {
 
 export function character(agent, cast) {
   const assigned = agent && cast && typeof cast === "object" ? cast[agent.address] : null;
-  return Object.hasOwn(NAMES, assigned) ? assigned : "luke";
+  return Object.hasOwn(NAMES, assigned) ? assigned : ARCADE_CONFIG.defaultHero;
 }
 
 function clock(ms) {
@@ -50,7 +44,7 @@ function clock(ms) {
   return `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
-export default class BombRun extends View {
+export default class ArcadeRun extends View {
   init(_props, cx) {
     this.focus = cx.focus_handle();
     this.started = false;
@@ -67,16 +61,16 @@ export default class BombRun extends View {
     this.showControls = false;
     this.viewWidth = 368;
     this.viewHeight = 640;
-    const active = spaces().find(space => space.active);
-    this.selectedAddress = (agents().find(agent => agent.address === props()?.pilot) ?? agents().find(agent => agent.focused)
-      ?? agents().find(agent => agent.space === active?.id) ?? agents()[0])?.address ?? null;
+    const active = spaces().find((space) => space.active);
+    this.selectedAddress = (agents().find((agent) => agent.address === props()?.pilot) ?? agents().find((agent) => agent.focused)
+      ?? agents().find((agent) => agent.space === active?.id) ?? agents()[0])?.address ?? null;
     this.progressKey = this.selectedAddress ?? "__training__";
     this.progress = checking() ? {} : loadProgress();
     this.game = this.mission();
     if (checking()) return;
     // Fixed simulation ticks support the 120 ms speed milestone exactly;
     // position interpolation stays native. Nothing advances while gated/paused.
-    cx.timer.every(TICK_MS, cx => {
+    cx.timer.every(TICK_MS, (cx) => {
       if (this.waitingForAgent()) { this.held = null; return; }
       if (!this.started || this.paused || this.game.status !== "playing") return;
       if (window()?.visible === false || !gameVisible(layout(), props()) || !this.focus.is_focused()) {
@@ -93,7 +87,7 @@ export default class BombRun extends View {
   }
 
   waitingForAgent() {
-    return this.thinkingOnly && agents().find(agent => agent.address === this.selectedAddress)?.status !== "working";
+    return this.thinkingOnly && agents().find((agent) => agent.address === this.selectedAddress)?.status !== "working";
   }
 
   toggleThinking(cx) {
@@ -101,7 +95,7 @@ export default class BombRun extends View {
     this.held = null;
     if (!checking()) {
       try { localStorage.setItem("thinking-only", String(this.thinkingOnly)); }
-      catch (error) { console.warn(`Bomb Run: setting could not be saved: ${error}`); }
+      catch (error) { console.warn(`${ARCADE_CONFIG.title}: setting could not be saved: ${error}`); }
     }
     cx.notify();
   }
@@ -118,11 +112,11 @@ export default class BombRun extends View {
     this.held = null;
     this.optionsOpen = false;
     cx.notify();
-    openOverlay({ mod: "star-wars-bomb-run", kind: "dialog", width: 640, height: 760, props: { pilot: this.selectedAddress } });
+    openOverlay({ mod: ARCADE_CONFIG.modName, kind: "dialog", width: 640, height: 760, props: { pilot: this.selectedAddress } });
   }
 
   pilotHero() {
-    return character(agents().find(agent => agent.address === this.selectedAddress), shared("star-wars-agents.cast"));
+    return character(agents().find((agent) => agent.address === this.selectedAddress), shared(ARCADE_CONFIG.castKey));
   }
 
   profile() {
@@ -138,7 +132,6 @@ export default class BombRun extends View {
     const profile = this.profile();
     const unlocked = Math.min(9999, this.game.level + (this.game.status === "won" ? 1 : 0));
     if (this.game.xp <= profile.xp && unlocked <= profile.level) return;
-    // Merge the latest file-backed state so another game copy's pilot is not lost.
     const latest = loadProgress();
     const saved = normalizeProfile(Object.hasOwn(latest, this.progressKey) ? latest[this.progressKey] : null);
     this.progress = { ...latest, [this.progressKey]: {
@@ -146,7 +139,7 @@ export default class BombRun extends View {
     } };
     if (!this.storageFailed) {
       try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(this.progress)); }
-      catch (error) { this.storageFailed = true; console.warn(`Bomb Run: progress could not be saved: ${error}`); }
+      catch (error) { this.storageFailed = true; console.warn(`${ARCADE_CONFIG.title}: progress could not be saved: ${error}`); }
     }
   }
 
@@ -202,7 +195,7 @@ export default class BombRun extends View {
   selectAgent(direction, cx) {
     const list = agents();
     if (!list.length) return;
-    const current = list.findIndex(agent => agent.address === this.selectedAddress);
+    const current = list.findIndex((agent) => agent.address === this.selectedAddress);
     const index = current < 0 ? (direction > 0 ? -1 : 0) : current;
     this.persist();
     this.selectedAddress = list[(index + direction + list.length) % list.length].address;
@@ -258,13 +251,13 @@ export default class BombRun extends View {
   render() {
     const t = theme();
     const list = agents();
-    const selected = list.find(agent => agent.address === this.selectedAddress);
+    const selected = list.find((agent) => agent.address === this.selectedAddress);
     const hero = this.game.hero;
     const power = powerFor(this.game);
     const deck = deckFor(this.game.level);
-    const activeSpace = spaces().find(space => space.active);
-    const assignment = shared("star-wars.ships")?.[activeSpace?.id];
-    const shipName = SHIPS[assignment] ?? "Training ship";
+    const activeSpace = spaces().find((space) => space.active);
+    const assignment = shared(ARCADE_CONFIG.locationsSharedKey)?.[activeSpace?.id];
+    const locationName = LOCATIONS[assignment] ?? ARCADE_CONFIG.defaultLocationName;
     const waiting = this.waitingForAgent();
     const options = {
       tile: this.tileSize, hero, started: this.started, paused: this.paused, epoch: this.epoch,
@@ -272,7 +265,7 @@ export default class BombRun extends View {
         : "No selected agent is connected. Disable Thinking only to train." : null,
     };
     return gamePanel(this, {
-      t, selected, heroName: NAMES[hero], power, deck, shipName, waiting, options,
+      t, selected, heroName: NAMES[hero], power, deck, locationName, waiting, options,
       overlay: Boolean(props()?.overlay), canSwitch: list.length > 1 || (list.length === 1 && !selected),
       time: clock(this.game.elapsed),
     });

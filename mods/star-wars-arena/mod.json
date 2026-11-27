@@ -1,12 +1,18 @@
 {
   "place": "none",
   "title": "Star Wars · Arena",
-  "overlay": { "kind": "dialog", "width": 704, "height": 560 },
+  "overlay": {
+    "kind": "dialog",
+    "width": 704,
+    "height": 560
+  },
   "palette": [
     {
       "title": "Star Wars: Battle Simulator",
       "command": "mod.open",
-      "args": { "name": "star-wars-arena" },
+      "args": {
+        "name": "star-wars-arena"
+      },
       "words": "arena demo battle combat lightsabers blasters custom squads conversations"
     }
   ]

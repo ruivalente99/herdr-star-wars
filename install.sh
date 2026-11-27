@@ -1,19 +1,20 @@
 #!/usr/bin/env bash
-# Installs the Star Wars layout and its seven custom mods into a Herdr app home.
-set -euo pipefail
+# Synced from herdr-common. Installs the Star Wars layout and its seven custom mods into a Herdr app home.
+set -eu
 
-REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO="$(cd "$(dirname "$0")" && pwd)"
 HERDR_HOME="${HERDR_APP_HOME:-$HOME/.config/herdr-app}"
 STAMP="$(date +%Y%m%d-%H%M%S)"
 BACKUP="$HERDR_HOME/backups/star-wars-$STAMP"
-MODS=(star-wars-agents star-wars-alerts star-wars-status star-wars-systems star-wars-arena star-wars-bomb-run star-wars-tabs)
+MODS="star-wars-agents star-wars-alerts star-wars-status star-wars-systems star-wars-arena star-wars-bomb-run star-wars-tabs"
 
 fail() { echo "install.sh: $*" >&2; exit 1; }
 command -v herdr-app >/dev/null 2>&1 || fail "herdr-app is not on PATH. Install Herdr and try again."
 
 backup_path() {
-  local relative="$1" target="$HERDR_HOME/$1"
-  if [[ -e "$target" || -L "$target" ]]; then
+  relative="$1"
+  target="$HERDR_HOME/$1"
+  if [ -e "$target" ] || [ -L "$target" ]; then
     mkdir -p "$BACKUP/$(dirname "$relative")"
     mv "$target" "$BACKUP/$relative"
     echo "  backed up $relative to backups/star-wars-$STAMP/"
@@ -21,16 +22,20 @@ backup_path() {
 }
 
 install_file() {
-  local relative="$1" source="$REPO/$1" target="$HERDR_HOME/$1"
-  [[ -f "$source" ]] || fail "missing project file: $relative"
+  relative="$1"
+  source="$REPO/$1"
+  target="$HERDR_HOME/$1"
+  [ -f "$source" ] || fail "missing project file: $relative"
   backup_path "$relative"
   mkdir -p "$(dirname "$target")"
   cp "$source" "$target"
 }
 
 replace_mod() {
-  local mod="$1" relative="mods/$1" target="$HERDR_HOME/mods/$1"
-  [[ -d "$REPO/$relative" ]] || fail "missing project mod: $relative"
+  mod="$1"
+  relative="mods/$1"
+  target="$HERDR_HOME/mods/$1"
+  [ -d "$REPO/$relative" ] || fail "missing project mod: $relative"
   backup_path "$relative"
   mkdir -p "$HERDR_HOME/mods"
   cp -R "$REPO/$relative" "$target"
@@ -43,16 +48,16 @@ for file in layouts/star-wars.json layouts/star-wars.png themes/light-side.json 
   install_file "$file"
 done
 
-while IFS= read -r source; do
+find "$REPO/backgrounds/ships" -type f ! -name .DS_Store -print | while IFS= read -r source; do
   relative="${source#"$REPO"/}"
   install_file "$relative"
-done < <(find "$REPO/backgrounds/ships" -type f ! -name .DS_Store -print)
+done
 
-for mod in "${MODS[@]}"; do
+for mod in $MODS; do
   replace_mod "$mod"
 done
 
-for mod in "${MODS[@]}"; do
+for mod in $MODS; do
   HERDR_APP_HOME="$HERDR_HOME" herdr-app check "$HERDR_HOME/mods/$mod" \
     || fail "mods/$mod failed Herdr validation; previous files are in the backup directory."
 done
